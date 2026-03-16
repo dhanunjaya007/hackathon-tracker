@@ -1,0 +1,13 @@
+{
+  "name": "hackathon-tracker",
+  "version": "1.0.0",
+  "description": "Hackathon aggregator - scrapes Unstop, HackerEarth, Hack2Skill, Devpost",
+  "scripts": {
+    "start": "cd backend && node server.js",
+    "dev": "cd backend && npx nodemon server.js",
+    "install:backend": "cd backend && npm install"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
