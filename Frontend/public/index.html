@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HackFinder — Discover Hackathons</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --border: #1e1e2e;
+    --text: #e8e8f0;
+    --muted: #6b6b8a;
+    --accent: #7c3aed;
+    --accent2: #06b6d4;
+    --accent3: #f59e0b;
+    --green: #10b981;
+    --red: #ef4444;
+    --unstop: #6C63FF;
+    --hackerearth: #44b0f0;
+    --hack2skill: #FF6B35;
+    --devpost: #4ab3f4;
+    --radius: 12px;
+    --font-head: 'Syne', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-head);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(124,58,237,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,58,237,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Orbs */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(100px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.15;
+  }
+  .orb-1 { width: 600px; height: 600px; background: var(--accent); top: -200px; right: -100px; }
+  .orb-2 { width: 400px; height: 400px; background: var(--accent2); bottom: 100px; left: -100px; }
+
+  /* Layout */
+  .wrapper { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+
+  /* Header */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  .logo-text {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 1.3rem;
+    color: var(--text);
+  }
+  .logo-text span { color: var(--accent2); }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .refresh-btn {
+    background: var(--border);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--muted);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .refresh-btn:hover { color: var(--text); border-color: var(--accent); }
+  .refresh-btn.loading .spin { animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .last-updated {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  /* Hero */
+  .hero {
+    padding: 80px 0 48px;
+    text-align: center;
+  }
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(124,58,237,0.1);
+    border: 1px solid rgba(124,58,237,0.3);
+    color: var(--accent);
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
+    margin-bottom: 24px;
+    animation: fadeUp 0.6s ease both;
+  }
+  .hero h1 {
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 20px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+  .hero h1 .highlight {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    color: var(--muted);
+    font-size: 1.1rem;
+    max-width: 560px;
+    margin: 0 auto 40px;
+    line-height: 1.6;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-bottom: 60px;
+    flex-wrap: wrap;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+  .stat {
+    text-align: center;
+  }
+  .stat-num {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text);
+    display: block;
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 4px;
+  }
+  .stat-divider {
+    width: 1px;
+    background: var(--border);
+    align-self: stretch;
+  }
+
+  /* Controls */
+  .controls {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 32px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+  .search-wrap {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .search-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 14px 10px 38px;
+    border-radius: 8px;
+    font-family: var(--font-head);
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-input::placeholder { color: var(--muted); }
+  .search-input:focus { border-color: var(--accent); }
+
+  .filter-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .filter-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+  .filter-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  select.filter-select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    padding-right: 28px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b8a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+
+  /* Hackathon grid */
+  .grid-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .grid-title {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+  .grid-title span { color: var(--text); font-weight: bold; }
+
+  .hackathon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 20px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    transition: all 0.25s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.5s ease both;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--source-color, var(--accent));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .card:hover {
+    border-color: rgba(255,255,255,0.12);
+    transform: translateY(-3px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .card:hover::before { opacity: 1; }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .source-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.68rem;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    background: rgba(255,255,255,0.06);
+    color: var(--source-color, var(--accent));
+    border: 1px solid currentColor;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .source-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .mode-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-family: var(--font-mono);
+    background: rgba(16,185,129,0.1);
+    color: var(--green);
+    border: 1px solid rgba(16,185,129,0.2);
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--text);
+  }
+  .card-desc {
+    font-size: 0.83rem;
+    color: var(--muted);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .tag {
+    background: rgba(124,58,237,0.1);
+    border: 1px solid rgba(124,58,237,0.2);
+    color: #a78bfa;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-family: var(--font-mono);
+  }
+
+  .card-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    margin-top: auto;
+  }
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .meta-label {
+    font-size: 0.62rem;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .meta-value {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .meta-value.deadline { color: var(--accent3); }
+  .meta-value.prize { color: var(--green); }
+  .meta-value.urgent { color: var(--red) !important; }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .register-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent);
+    color: white;
+    padding: 9px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 700;
+    transition: all 0.2s;
+    flex: 1;
+    justify-content: center;
+  }
+  .register-btn:hover {
+    background: #6d28d9;
+    transform: scale(1.02);
+  }
+  .registrations-count {
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    white-space: nowrap;
+  }
+
+  /* Deadline progress */
+  .deadline-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .deadline-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s;
+  }
+
+  /* Loading */
+  .loading-state {
+    text-align: center;
+    padding: 80px 0;
+  }
+  .loader {
+    display: inline-flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .loader span {
+    width: 10px; height: 10px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: bounce 1.2s ease-in-out infinite;
+  }
+  .loader span:nth-child(2) { animation-delay: 0.15s; background: var(--accent2); }
+  .loader span:nth-child(3) { animation-delay: 0.3s; background: var(--accent3); }
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0.7); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+  .loading-text {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 80px 0;
+    color: var(--muted);
+  }
+  .empty-icon { font-size: 3rem; margin-bottom: 16px; }
+  .empty-state h3 { font-size: 1.2rem; color: var(--text); margin-bottom: 8px; }
+  .empty-state p { font-size: 0.85rem; }
+
+  /* Source tabs */
+  .source-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 20px;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text);
+    z-index: 1000;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s;
+    max-width: 300px;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-color: var(--green); }
+  .toast.error { border-color: var(--red); }
+
+  /* Footer */
+  footer {
+    margin-top: 80px;
+    padding: 32px 24px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  footer a { color: var(--accent2); text-decoration: none; }
+
+  @media (max-width: 768px) {
+    .hackathon-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 2.2rem; }
+    .stats-bar { gap: 20px; }
+    .stat-divider { display: none; }
+    .controls { flex-direction: column; }
+    .search-wrap { min-width: unset; width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<header>
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <div class="logo-icon">⚡</div>
+      <span class="logo-text">Hack<span>Finder</span></span>
+    </a>
+    <div class="header-right">
+      <span class="last-updated" id="lastUpdated">–</span>
+      <button class="refresh-btn" id="refreshBtn" onclick="forceRefresh()">
+        <span class="spin" id="spinIcon">↻</span> Refresh
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrapper">
+    <section class="hero">
+      <div class="hero-tag">
+        <span>🔥</span> Live Hackathon Aggregator
+      </div>
+      <h1>Find Your Next<br><span class="highlight">Hackathon</span></h1>
+      <p>Aggregating live hackathons from Unstop, HackerEarth, Hack2Skill, and Devpost — all in one place.</p>
+      <div class="stats-bar" id="statsBar">
+        <div class="stat">
+          <span class="stat-num" id="statTotal">–</span>
+          <span class="stat-label">Total</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-num" id="statUpcoming">–</span>
+          <span class="stat-label">Upcoming</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-num" id="statSources">4</span>
+          <span class="stat-label">Sources</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="controls">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input
+          class="search-input"
+          id="searchInput"
+          type="text"
+          placeholder="Search hackathons, tags, topics..."
+          oninput="applyFilters()"
+        >
+      </div>
+      <div class="filter-group source-tabs" id="sourceTabs">
+        <button class="filter-btn active" data-source="all" onclick="setSource(this)">All Sources</button>
+        <button class="filter-btn" data-source="unstop" onclick="setSource(this)">Unstop</button>
+        <button class="filter-btn" data-source="hackerearth" onclick="setSource(this)">HackerEarth</button>
+        <button class="filter-btn" data-source="hack2skill" onclick="setSource(this)">Hack2Skill</button>
+        <button class="filter-btn" data-source="devpost" onclick="setSource(this)">Devpost</button>
+      </div>
+      <div class="filter-group">
+        <select class="filter-select" id="modeFilter" onchange="applyFilters()">
+          <option value="all">All Modes</option>
+          <option value="online">Online</option>
+          <option value="offline">Offline</option>
+          <option value="hybrid">Hybrid</option>
+        </select>
+        <select class="filter-select" id="sortFilter" onchange="applyFilters()">
+          <option value="deadline">Sort: Deadline</option>
+          <option value="newest">Sort: Newest</option>
+          <option value="prize">Sort: Prize</option>
+          <option value="popular">Sort: Popular</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid-header">
+      <span class="grid-title">Showing <span id="countLabel">0</span> hackathons</span>
+    </div>
+
+    <div id="grid" class="hackathon-grid">
+      <div class="loading-state">
+        <div class="loader"><span></span><span></span><span></span></div>
+        <p class="loading-text">Scraping hackathons from all sources...</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrapper">
+    Built with ❤️ · Aggregates from <a href="https://unstop.com" target="_blank">Unstop</a>,
+    <a href="https://hackerearth.com" target="_blank">HackerEarth</a>,
+    <a href="https://hack2skill.com" target="_blank">Hack2Skill</a>,
+    <a href="https://devpost.com" target="_blank">Devpost</a>
+    · Auto-refreshes every 30 min
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = window.location.origin + '/api';
+  let allHackathons = [];
+  let activeSource = 'all';
+
+  const SOURCE_COLORS = {
+    Unstop: '#6C63FF',
+    HackerEarth: '#44b0f0',
+    Hack2Skill: '#FF6B35',
+    Devpost: '#4ab3f4',
+  };
+
+  async function loadHackathons() {
+    try {
+      const [hackRes, statsRes] = await Promise.all([
+        fetch(`${API}/hackathons`),
+        fetch(`${API}/stats`),
+      ]);
+      const hackData = await hackRes.json();
+      const statsData = await statsRes.json();
+
+      allHackathons = hackData.data || [];
+
+      // Update stats
+      document.getElementById('statTotal').textContent = statsData.total || 0;
+      document.getElementById('statUpcoming').textContent = statsData.upcoming || 0;
+      document.getElementById('statSources').textContent = Object.keys(statsData.sources || {}).length;
+
+      // Update last updated
+      if (hackData.lastUpdated) {
+        const d = new Date(hackData.lastUpdated);
+        document.getElementById('lastUpdated').textContent = 'Updated ' + timeAgo(d);
+      }
+
+      applyFilters();
+    } catch (err) {
+      console.error('Load error:', err);
+      document.getElementById('grid').innerHTML = `
+        <div class="empty-state" style="grid-column:1/-1">
+          <div class="empty-icon">⚠️</div>
+          <h3>Could not load hackathons</h3>
+          <p>Make sure the backend is running. Retrying in 10s...</p>
+        </div>
+      `;
+      setTimeout(loadHackathons, 10000);
+    }
+  }
+
+  function applyFilters() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const mode = document.getElementById('modeFilter').value;
+    const sort = document.getElementById('sortFilter').value;
+
+    let data = [...allHackathons];
+
+    if (activeSource !== 'all') {
+      data = data.filter(h => h.source.toLowerCase() === activeSource);
+    }
+    if (mode !== 'all') {
+      data = data.filter(h => (h.mode || '').toLowerCase().includes(mode));
+    }
+    if (search) {
+      data = data.filter(h =>
+        h.title.toLowerCase().includes(search) ||
+        h.description.toLowerCase().includes(search) ||
+        (h.tags || []).some(t => t.toLowerCase().includes(search))
+      );
+    }
+
+    if (sort === 'newest') data.sort((a,b) => new Date(b.startDate||0) - new Date(a.startDate||0));
+    else if (sort === 'prize') data.sort((a,b) => extractNum(b.prize) - extractNum(a.prize));
+    else if (sort === 'popular') data.sort((a,b) => (b.registrations||0) - (a.registrations||0));
+    else data.sort((a,b) => {
+      if (!a.deadline && !b.deadline) return 0;
+      if (!a.deadline) return 1; if (!b.deadline) return -1;
+      return new Date(a.deadline) - new Date(b.deadline);
+    });
+
+    renderGrid(data);
+    document.getElementById('countLabel').textContent = data.length;
+  }
+
+  function setSource(btn) {
+    document.querySelectorAll('#sourceTabs .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeSource = btn.dataset.source;
+    applyFilters();
+  }
+
+  function renderGrid(hackathons) {
+    const grid = document.getElementById('grid');
+    if (!hackathons.length) {
+      grid.innerHTML = `
+        <div class="empty-state" style="grid-column:1/-1">
+          <div class="empty-icon">🔍</div>
+          <h3>No hackathons found</h3>
+          <p>Try a different search or clear your filters</p>
+        </div>
+      `;
+      return;
+    }
+
+    grid.innerHTML = hackathons.map((h, i) => renderCard(h, i)).join('');
+  }
+
+  function renderCard(h, i) {
+    const color = SOURCE_COLORS[h.source] || '#7c3aed';
+    const deadline = h.deadline ? new Date(h.deadline) : null;
+    const now = new Date();
+    const daysLeft = deadline ? Math.ceil((deadline - now) / 86400000) : null;
+
+    let deadlineText = 'TBA';
+    let deadlineClass = 'deadline';
+    if (deadline) {
+      if (daysLeft < 0) { deadlineText = 'Ended'; deadlineClass = 'deadline'; }
+      else if (daysLeft === 0) { deadlineText = 'Today!'; deadlineClass = 'deadline urgent'; }
+      else if (daysLeft === 1) { deadlineText = 'Tomorrow'; deadlineClass = 'deadline urgent'; }
+      else if (daysLeft <= 3) { deadlineText = `${daysLeft} days`; deadlineClass = 'deadline urgent'; }
+      else if (daysLeft <= 7) { deadlineText = `${daysLeft} days`; }
+      else { deadlineText = formatDate(deadline); }
+    }
+
+    // Deadline progress bar (assuming 30 day cycles)
+    const startDate = h.startDate ? new Date(h.startDate) : new Date(now - 15*86400000);
+    const total = deadline ? (deadline - startDate) : 1;
+    const elapsed = now - startDate;
+    const pct = deadline ? Math.min(100, Math.max(0, (elapsed/total)*100)) : 0;
+    const barColor = pct > 80 ? '#ef4444' : pct > 60 ? '#f59e0b' : '#10b981';
+
+    const tags = (h.tags || []).slice(0, 3).map(t => `<span class="tag">${t}</span>`).join('');
+    const registrations = h.registrations ? `👥 ${Number(h.registrations).toLocaleString()}` : '';
+
+    return `
+    <div class="card" style="--source-color:${color}; animation-delay:${i*0.05}s">
+      <div class="card-header">
+        <span class="source-badge" style="color:${color}">
+          <span class="source-dot"></span>${h.source}
+        </span>
+        <span class="mode-badge">📡 ${h.mode || 'Online'}</span>
+      </div>
+      <h3 class="card-title">${escHtml(h.title)}</h3>
+      <p class="card-desc">${escHtml(h.description)}</p>
+      ${tags ? `<div class="card-tags">${tags}</div>` : ''}
+      <div class="deadline-bar">
+        <div class="deadline-fill" style="width:${pct}%;background:${barColor}"></div>
+      </div>
+      <div class="card-meta">
+        <div class="meta-item">
+          <span class="meta-label">⏰ Deadline</span>
+          <span class="meta-value ${deadlineClass}">${deadlineText}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">🏆 Prize</span>
+          <span class="meta-value prize">${escHtml(h.prize || 'Check site')}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">👥 Team Size</span>
+          <span class="meta-value">${escHtml(h.teamSize || '1-4')}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">📊 Registered</span>
+          <span class="meta-value">${h.registrations ? Number(h.registrations).toLocaleString() : '–'}</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <a class="register-btn" href="${h.url}" target="_blank" rel="noopener">
+          Register Now →
+        </a>
+      </div>
+    </div>`;
+  }
+
+  async function forceRefresh() {
+    const btn = document.getElementById('refreshBtn');
+    btn.classList.add('loading');
+    try {
+      await fetch(`${API}/refresh`, { method: 'POST' });
+      showToast('Refresh started! Data will update shortly.', 'success');
+      setTimeout(loadHackathons, 3000);
+    } catch(e) {
+      showToast('Refresh failed.', 'error');
+    }
+    setTimeout(() => btn.classList.remove('loading'), 2000);
+  }
+
+  function showToast(msg, type='') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  function timeAgo(d) {
+    const diff = Date.now() - d;
+    if (diff < 60000) return 'just now';
+    if (diff < 3600000) return `${Math.floor(diff/60000)}m ago`;
+    if (diff < 86400000) return `${Math.floor(diff/3600000)}h ago`;
+    return d.toLocaleDateString();
+  }
+
+  function formatDate(d) {
+    return d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+  }
+
+  function extractNum(prize) {
+    if (!prize) return 0;
+    const m = prize.replace(/,/g,'').match(/[\d.]+/);
+    return m ? parseFloat(m[0]) : 0;
+  }
+
+  function escHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Auto-refresh every 5 min from frontend
+  setInterval(loadHackathons, 5 * 60 * 1000);
+
+  // Initial load
+  loadHackathons();
+</script>
+</body>
+</html>
